@@ -7,3 +7,22 @@ For now the Menu-Items and descriptions are only availiable in German but I'm wo
 Overview
 -----------------------
 
+* Manage Team Rosters
+* Manage Games 
+* Manage Statistics
+
+Widgets
+-------------------------
+* Gameplan
+* Scores
+
+Pages
+-------------------------
+* Add Player Lists
+* Score List
+* Statstics Page
+
+Posts
+--------------------------
+* Gamewrap Page for a Post
+including Flickr Photos and Statistics
