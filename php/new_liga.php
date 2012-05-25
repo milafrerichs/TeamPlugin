@@ -7,13 +7,14 @@ if(isset($_POST['name']) && $_POST['name'] != "")
 	$team_id = $_POST['team'];
 	$description = $_POST['description'];
 	$saison = $_POST['saison'];
+	$innings = $_POST['innings'];
 	$table = $wpdb->prefix . "ligen";
 	if(isset($_POST['id']) && $_POST['id'] != "")
 	{
-		$wpdb->update($table,array("team_id"=>$team_id,"name"=>$name,"description"=>$description,"saison"=>$saison),array("id"=>$_POST['id']));
+		$wpdb->update($table,array("team_id"=>$team_id,"name"=>$name,"description"=>$description,"saison"=>$saison,"innings"=>$innings),array("id"=>$_POST['id']));
 	}else
 	{
-		$wpdb->insert($table,array("team_id"=>$team_id,"name"=>$name,"description"=>$description,"saison"=>$saison) );
+		$wpdb->insert($table,array("team_id"=>$team_id,"name"=>$name,"description"=>$description,"saison"=>$saison,"innings"=>$innings) );
 	}
 	?>
 	<div class="updated"><p><strong> Gespeichert</strong></p></div>  
@@ -41,7 +42,7 @@ $teams =  $wpdb->get_results( "SELECT id, name,saison FROM ".$wpdb->prefix."team
 				</select></p>
 	<p>Description: <input type="text" name="description" value="<?php echo (isset($liga->description))?$liga->description:'';?>" /></p>
 	<p>Saison: <input type="text" name="saison" value="<?php echo (isset($liga->saison))?$liga->saison:'';?>" /></p>
-	
+	<p>Innings: <input type="text" name="innings" value="<?php echo (isset($liga->innings))?$liga->innings:'';?>" /></p>
 	<p class="submit">  
 	        <input type="submit" name="Submit" value="Eintragen" />  
 	        </p>  
