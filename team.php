@@ -30,24 +30,29 @@ if (!class_exists("TeamPlugin")) {
         }
    		function  init() {
 			global $wpdb;
+			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 			
-			$table_name = $wpdb->prefix . "teams";
-			if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) 
+			$teamTable = $wpdb->prefix . "teams";
+			$teamMemberTable = $wpdb->prefix . "team_members";
+			$ligaTable = $wpdb->prefix . "ligen";
+			$spieleTable = $wpdb->prefix . "spiele";
+			$statsTable = $wpdb->prefix . "statistiken";
+			
+			if($wpdb->get_var("SHOW TABLES LIKE '$teamTable'") != $teamTable) 
 			{
-				$sql = "CREATE TABLE " . $table_name . " (
+				$sql = "CREATE TABLE " . $teamTable . " (
 					  id mediumint(9) NOT NULL AUTO_INCREMENT,
 					  name varchar(255) NOT NULL,
 					  description text NOT NULL,
 					  saison int(11) NOT NULL,
 					  UNIQUE KEY id (id)
 					);";
-				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
-			$table_name_2 = $wpdb->prefix . "team_members";
-			if($wpdb->get_var("SHOW TABLES LIKE '$table_name_2'") != $table_name_2) 
+			
+			if($wpdb->get_var("SHOW TABLES LIKE '$teamMemberTable'") != $teamMemberTable) 
 			{
-				$sql = "CREATE TABLE " . $table_name_2 . " (
+				$sql = "CREATE TABLE " . $teamMemberTable . " (
 					  id mediumint(9) NOT NULL AUTO_INCREMENT,
 					  team_id mediumint(9) NOT NULL,
 					  name varchar(255) NOT NULL,
@@ -61,13 +66,12 @@ if (!class_exists("TeamPlugin")) {
 					  vereine text NOT NULL,
 					  UNIQUE KEY id (id)
 					);";
-				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
-			$table_name = $wpdb->prefix . "ligen";
-			if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) 
+			
+			if($wpdb->get_var("SHOW TABLES LIKE '$ligaTable'") != $ligaTable) 
 			{
-				$sql = "CREATE TABLE " . $table_name . " (
+				$sql = "CREATE TABLE " . $ligaTable . " (
 					  id mediumint(9) NOT NULL AUTO_INCREMENT,
 					  team_id int(11) NOT NULL,
 					  name varchar(255) NOT NULL,
@@ -76,13 +80,12 @@ if (!class_exists("TeamPlugin")) {
 					  innings int(11) NOT NULL DEFAULT 9,
 					  UNIQUE KEY id (id)
 					);";
-				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
-			$table_name = $wpdb->prefix . "spiele";
-			if($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) 
+			
+			if($wpdb->get_var("SHOW TABLES LIKE '$spieleTable'") != $spieleTable) 
 			{
-				$sql = "CREATE TABLE " . $table_name . " (
+				$sql = "CREATE TABLE " . $spieleTable . " (
 					  id mediumint(9) NOT NULL AUTO_INCREMENT,
 					  liga_id int(11) NOT NULL,
 					  ort varchar(255) NOT NULL,
@@ -94,13 +97,12 @@ if (!class_exists("TeamPlugin")) {
 					  score_gast int(3) NOT NULL,
 					  UNIQUE KEY id (id)
 					);";
-				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
-			$table_stats = $wpdb->prefix . "statistiken";
-			if($wpdb->get_var("SHOW TABLES LIKE '$table_stats'") != $table_stats) 
+			
+			if($wpdb->get_var("SHOW TABLES LIKE '$statsTable'") != $statsTable) 
 			{
-				$sql = "CREATE TABLE " . $table_stats . " (
+				$sql = "CREATE TABLE " . $statsTable . " (
 					  id mediumint(9) NOT NULL AUTO_INCREMENT,
 					  player_id mediumint(9) NOT NULL,
 					  saison int(11) NOT NULL,
@@ -126,7 +128,6 @@ if (!class_exists("TeamPlugin")) {
 					  errors int(11) NOT NULL,					 
 					  UNIQUE KEY id (id)
 					);";
-				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 				dbDelta($sql);
 			}
 			
