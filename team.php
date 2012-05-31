@@ -73,7 +73,7 @@ if (!class_exists("TeamPlugin")) {
 					  name varchar(255) NOT NULL,
 					  description text NOT NULL,
 					  saison int(11) NOT NULL,
-					  innings int(11) NOT NULL,
+					  innings int(11) NOT NULL DEFAULT 9,
 					  UNIQUE KEY id (id)
 					);";
 				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
