@@ -1,13 +1,15 @@
 <?
-$team_id = get_post_meta($post_id, '_spielerliste', true);
+$teamId = get_post_meta($post_id, '_spielerliste', true);
 
-$team = $wpdb->get_results("SELECT spieler.* FROM ".$wpdb->prefix."player_teams as pt LEFT JOIN ".$wpdb->prefix."team_members as spieler ON spieler.id = pt.player_id WHERE pt.team_id = ".$team_id." ORDER BY spieler.name");
 
-shuffle($team);
-$spielerliste = '<ul class="spielerliste" cellpadding="0" cellspacing="0" border="0">';
+$players = "";
+
+$team = returnPlayersWithTeamId($teamId);
+$team = returnRandomOrderedPlayersArray($team);
+
 foreach($team as $spieler)
 {
-	$spielerliste .= '<li><a name="'.$spieler->id.'"></a>';
+	
 	if(file_exists(PLAYER_DIR."/player_".$spieler->id.".jpg")) {
 		$spielerliste.= '<img src="'.WP_CONTENT_URL.'/players/player_'.$spieler->id.'.jpg" width="250" />';
 	}
@@ -21,31 +23,104 @@ foreach($team as $spieler)
 	{
 		$spielerliste.= '<img src="'.WP_CONTENT_URL.'/players/keinbild.jpg" width="250" />';
 	}
-	$spielerliste .= '<dl class="spieler">';
-	$spielerliste .= '<dt>';
-	$spielerliste .= ''.$spieler->vorname.' '.$spieler->name.' <span>(#'.$spieler->nummer.')</span>';
-	$spielerliste .= '</dt>';
-	$spielerliste .= '<dd class="position">';
-	$spielerliste .= $spieler->positionen;
-	$spielerliste .= '</dd>';
 	
-	$spielerliste .= '<dd>';
-	$spielerliste .= '<table border="0">';
+		
+	$players .= generatePlayerCard($spieler);
 	
-	$spielerliste .= '<tr><td class="head">Spielt seit: </td>';
-	$spielerliste .= '<td>'.$spieler->spielt_seit.'</td></tr>';
-	
-	$spielerliste .= '<tr><td class="head">Wirft: </td>';
-	$spielerliste .= '<td>'.$spieler->wirft.'</td></tr>';
-	
-	$spielerliste .= '<tr><td class="head">Schlägt: </td>';
-	$spielerliste .= '<td>'.$spieler->schlaegt.'</td></tr>';
-	
-	$spielerliste .= '<tr><td class="head">Vereine: </td>';
-	$spielerliste .= '<td>'.$spieler->vereine.'</td></tr>';
-	
-	$spielerliste .= '</table></dd></dl>';
-
 }
 
-$spielerliste .= '</ul>';
+$spielerliste = generateHTMLTag("ul","spielerliste","",$players);
+
+
+function returnPlayersWithTeamId($teamId) {
+	global $wpdb;
+	
+	$players = $wpdb->get_results("SELECT spieler.* FROM ".$wpdb->prefix."player_teams as pt LEFT JOIN ".$wpdb->prefix."team_members as spieler ON spieler.id = pt.player_id WHERE pt.team_id = ".$teamId." ORDER BY spieler.name");
+	return $players;	
+}
+
+function returnRandomOrderedPlayersArray($players) {
+	return shuffle($players);	
+}
+
+
+function returnPlayerName($player) {
+	return $player->vorname." ".$player->name;
+}
+function returnPlayerNumber($player) {
+	return $player->nummer;
+}
+function returnPlayerPositions($player) {
+	return $player->positionen;
+}
+function returnPlayerPlayingSince($player) {
+	return $player->spielt_seit;
+}
+function returnPlayerThrowingArm($player) {
+	return $player->wirft;
+}
+function returnPlayerBatPosition($player) {
+	return $player->schlaegt;
+}
+function returnPlayerClubs($player) {
+	return $player->vereine;
+}
+
+function generatePlayerCard($spieler) {
+	
+	$playingSince = generateHTMLTag("td","","",returnPlayerPlayingSince($spieler));
+	$headPlayingSince = generateHTMLTag("td","head","","Spielt seit: ");
+	$htmlcolumnPlayingSince = generateHTMLTag("tr","","",$headPlayingSince.$playingSince);
+	
+	$throwingArm = generateHTMLTag("td","","",returnPlayerThrowingArm($spieler));
+	$headThrowingArm = generateHTMLTag("td","head","","Wirft: ");
+	$htmlcolumnThrowingArm = generateHTMLTag("tr","","",$headThrowingArm.$throwingArm);
+	
+	$batPosition = generateHTMLTag("td","","",returnPlayerBatPosition($spieler));
+	$headBatPosition = generateHTMLTag("td","head","","Schlägt: ");
+	$htmlcolumnBatPosition = generateHTMLTag("tr","","",$headBatPosition.$batPosition);
+	
+	$clubs = generateHTMLTag("td","","",returnPlayerClubs($spieler));
+	$headClubs = generateHTMLTag("td","head","","Verine: ");
+	$htmlcolumnClubs = generateHTMLTag("tr","","",$headClubs.$clubs);
+	
+	$playerTableHTML = generateHTMLTag("table","","",$htmlcolumnPlayingSince.$htmlcolumnThrowingArm.$htmlcolumnBatPosition.$htmlcolumnClubs,array("border"=>"0"));
+	
+	$definitionBodyPlayer = generateHTMLTag("dd","","",$playerTableHTML);
+	
+	$definitionBodyPlayerPosition = generateHTMLTag("dd","position","",returnPlayerPositions($spieler));
+	
+	$playerNumberContent = " (#".returnPlayerNumber($spieler).")";
+	$playerNumberHTML = generateHTMLTag("span","","",$playerNumberContent);
+	$playerName = returnPlayerName($spieler);
+	$defitionTitlePlayerData = generateHTMLTag("dt","","",$playerName.$playerNumberHTML);
+	
+	
+	$defitionListData = $defitionTitlePlayerData.$definitionBodyPlayerPosition.$definitionBodyPlayer;
+	$definitionListPlayerData = generateHTMLTag("dl","spieler","",$defitionListData);
+	
+	$playerCard = generateHTMLTag("li","","",$definitionListPlayerData);	
+	
+	return $playerCard;
+	
+}
+/*
+function generateHeadOfPlayerCard($playerId) {
+	$head = '<li><a name="'.$playerId.'"></a>';
+	return $head;
+}
+*/
+function playerHasImage($playerId) {
+	if(file_exists(PLAYER_DIR."/player_".$playerId.".jpg")) {
+		return true;
+	}
+	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".gif")) {
+		return true;
+	}
+	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".png")) {
+		return true;
+	}
+	return false;
+		
+}
+
