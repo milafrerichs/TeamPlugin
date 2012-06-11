@@ -54,10 +54,10 @@ for($j=0;$j<3;$j++)
 			<td><input type="text" name="<? echo ($i>$innings)?"rhe_".$box."[".$i."]":$box."[".$i."]";?>" value="<?
 			if($box == "heim")
 			{
-				echo ($i>$innings)?$heim_box_tp[1][$i]:$heim_box_tp[0][$i];
+				echo ($i>$innings)?$runsHitsErrorsHome[$i]:$scoresHome[$i];
 			}else
 			{
-				echo ($i>$innings)?$gast_box_tp[1][$i]:$gast_box_tp[0][$i];
+				echo ($i>$innings)?$runsHitsErrorsAway[$i]:$scoresAway[$i];
 			}	
 			
 			?>" size="2"/></td>
