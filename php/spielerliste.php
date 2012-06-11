@@ -1,37 +1,4 @@
 <?
-$teamId = get_post_meta($post_id, '_spielerliste', true);
-
-
-$players = "";
-
-$team = returnPlayersWithTeamId($teamId);
-$team = returnRandomOrderedPlayersArray($team);
-
-foreach($team as $spieler)
-{
-	
-	if(file_exists(PLAYER_DIR."/player_".$spieler->id.".jpg")) {
-		$spielerliste.= '<img src="'.WP_CONTENT_URL.'/players/player_'.$spieler->id.'.jpg" width="250" />';
-	}
-	elseif(file_exists(PLAYER_DIR."/player_".$spieler->id.".gif")) {
-		$spielerliste.= '<img src="'.WP_CONTENT_URL.'/players/player_'.$spieler->id.'.gif" width="250" />';
-	}
-	elseif(file_exists(PLAYER_DIR."/player_".$spieler->id.".png")) {
-		$spielerliste.= '<img src="'.WP_CONTENT_URL.'/players/player_'.$spieler->id.'.png" width="250" />';
-	}
-	else 
-	{
-		$spielerliste.= '<img src="'.WP_CONTENT_URL.'/players/keinbild.jpg" width="250" />';
-	}
-	
-		
-	$players .= generatePlayerCard($spieler);
-	
-}
-
-$spielerliste = generateHTMLTag("ul","spielerliste","",$players);
-
-
 function returnPlayersWithTeamId($teamId) {
 	global $wpdb;
 	
@@ -43,7 +10,9 @@ function returnRandomOrderedPlayersArray($players) {
 	return shuffle($players);	
 }
 
-
+function returnPlayerId($player) {
+	return $player->id;
+}
 function returnPlayerName($player) {
 	return $player->vorname." ".$player->name;
 }
@@ -66,7 +35,34 @@ function returnPlayerClubs($player) {
 	return $player->vereine;
 }
 
+function playerHasImage($playerId) {
+	if(file_exists(PLAYER_DIR."/player_".$playerId.".jpg")) {
+		return true;
+	}
+	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".gif")) {
+		return true;
+	}
+	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".png")) {
+		return true;
+	}
+	return false;		
+}
+function returnPlayerImageSrc($playerId) {
+	if(file_exists(PLAYER_DIR."/player_".$playerId.".jpg")) {
+		return WP_CONTENT_URL.'/players/player_'.$playerId.'.jpg';
+	}
+	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".gif")) {
+		return WP_CONTENT_URL.'/players/player_'.$playerId.'.gif';
+	}
+	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".png")) {
+		return WP_CONTENT_URL.'/players/player_'.$playerId.'.png';
+	}
+}
+
+
 function generatePlayerCard($spieler) {
+	
+	$playerId = returnPlayerId($spieler);
 	
 	$playingSince = generateHTMLTag("td","","",returnPlayerPlayingSince($spieler));
 	$headPlayingSince = generateHTMLTag("td","head","","Spielt seit: ");
@@ -99,28 +95,35 @@ function generatePlayerCard($spieler) {
 	$defitionListData = $defitionTitlePlayerData.$definitionBodyPlayerPosition.$definitionBodyPlayer;
 	$definitionListPlayerData = generateHTMLTag("dl","spieler","",$defitionListData);
 	
-	$playerCard = generateHTMLTag("li","","",$definitionListPlayerData);	
+	if(playerHasImage($playerId)) {
+		$playerImageSrc = returnPlayerImageSrc($playerId);
+	}else {
+		$playerImageSrc = WP_CONTENT_URL.'/players/keinbild.jpg';
+	}
+	
+	$playerImage = generateHTMLTag("img","","","",array("src"=>$playerImageSrc,"width"=>"250"));
+	$playerCard = generateHTMLTag("li","","",$playerImage.$definitionListPlayerData);	
 	
 	return $playerCard;
 	
 }
-/*
-function generateHeadOfPlayerCard($playerId) {
-	$head = '<li><a name="'.$playerId.'"></a>';
-	return $head;
+
+$teamId = get_post_meta($post_id, '_spielerliste', true);
+
+
+$players = "";
+
+$team = returnPlayersWithTeamId($teamId);
+#$team = returnRandomOrderedPlayersArray($team);
+
+foreach($team as $spieler)
+{
+			
+	$players .= generatePlayerCard($spieler);
+	
 }
-*/
-function playerHasImage($playerId) {
-	if(file_exists(PLAYER_DIR."/player_".$playerId.".jpg")) {
-		return true;
-	}
-	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".gif")) {
-		return true;
-	}
-	elseif(file_exists(PLAYER_DIR."/player_".$playerId.".png")) {
-		return true;
-	}
-	return false;
-		
-}
+
+$spielerliste = generateHTMLTag("ul","spielerliste","",$players);
+
+
 

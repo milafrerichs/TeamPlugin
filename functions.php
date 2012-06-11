@@ -67,7 +67,7 @@ function has_spielbericht($postID) {
 function show_spielerliste($content,$post_id) {
 	global $wpdb;
 	include ('php/spielerliste.php');
-	#echo $spielerliste; //toDo: nachschauen im aktuellen Plugin!!!!!
+	echo $spielerliste; //toDo: nachschauen im aktuellen Plugin!!!!!
 	return $content.$spielerliste;
 }
 
@@ -104,12 +104,12 @@ function getShortBericht($text, $limit)    {
    function generateHTMLTag($tagName, $class = "", $id = "",$content, $addParams= array()) {
    		$html = "<".$tagName;
    		if($class != "") {
-   			$html .= 'class="'.$class.'"';
+   			$html .= ' class="'.$class.'"';
    		}
    		if($id != "") {
-   			$html .= 'id="'.$id.'"';
+   			$html .= ' id="'.$id.'"';
    		}
-   		if(!is_empty($addParams)) {
+   		if(!empty($addParams)) {
    			foreach($addParams as $attr=>$value) {
    				$html .= ' '.$attr.'="'.$value.'" ';
    			}
