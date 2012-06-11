@@ -122,8 +122,7 @@ if(isset($_GET['id'])) {
 }
 if(isset($spieler->id))
 {	
-	$player_teams =  $wpdb->get_col( "SELECT t.id FROM ".$wpdb->prefix."player_teams as pt LEFT JOIN ".$wpdb->prefix."teams as t ON (pt.team_id = t.id) WHERE pt.player_id = ".$spieler->id);
-	
+	$player_teams =  $wpdb->get_col( "SELECT pt.team_id FROM ".$wpdb->prefix."player_teams as pt WHERE pt.player_id = ".$spieler->id);
 }
 $teams = $wpdb->get_results( "SELECT id,name,saison FROM ".$wpdb->prefix."teams");
 wp_enqueue_script('jquery'); 
@@ -147,7 +146,7 @@ wp_print_scripts('jquery-form');
 		{
 			if(in_array($team->id,$player_teams))
 			{
-				$checked = ' "checked=checked"';
+				$checked = ' checked="checked"';
 			}
 			else
 			{
