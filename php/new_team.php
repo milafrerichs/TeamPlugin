@@ -40,29 +40,38 @@ if(isset($_GET['id'])){ echo 'Edit';}else{ echo 'Neues';} ?>  Team</h2>
 	$description = $_POST['description'];
 	$saison = $_POST['saison'];
 	
+	if(isset($_POST['spieler'])) {
+		$old_team_id = $_POST['team_spieler'];
+		$oldSeason = $wpdb->get_var("SELECT saison FROM ".$wpdb->prefix."teams WHERE id = ".$old_team_id."");
+		
+	}
 	
 	$table = $wpdb->prefix . "teams";
-	if(isset($_POST['id']) && $_POST['id'] != "" )
-	{
+	if(isset($_POST['id']) && $_POST['id'] != "" )	{
 		$wpdb->update($table,array("name"=>$name,"description"=>$description,"saison"=>$saison),array("id"=>$_POST['id']));
 	}else {
 		$wpdb->insert($table,array("name"=>$name,"description"=>$description,"saison"=>$saison));
 	}
+		
 	
-	if(isset($_POST['spieler']))
-	{
+	if(isset($_POST['spieler'])) {
 		$player = $_POST['spieler'];
-		$old_team_id = $_POST['team_spieler'];
+		
 		
 		$team_id = $wpdb->insert_id;
 		$players = $wpdb->get_col("SELECT id FROM ".$wpdb->prefix."team_members WHERE team_id = ".$old_team_id."");
 		foreach($players as $player_id)
 		{
-			echo $player_id;
+			#echo $player_id;
+			if($saison > $oldSeason) {
+				$wpdb->update($wpdb->prefix."team_members",array("team_id"=>$team_id),array("id"=>$player_id));
+			}
+			
 			$wpdb->insert($wpdb->prefix."player_teams",array("player_id"=>$player_id,"team_id"=>$team_id),array("%d"));
 		}
 		
 	}
+	
 	
 	?>
 	<div class="updated"><p><strong><?=$name;?> Gespeichert</strong></p></div>  
