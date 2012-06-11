@@ -3,7 +3,7 @@
 Plugin Name: Team Plugin 
 Plugin URI: http://www.milafrerichs.de
 Description: Saves me time. 
-Version: 1.0 
+Version: 1.1 
 Author: Mila Frerichs 
 Author URI: http://www.milafrerichs.de
 */  
@@ -13,13 +13,22 @@ define("TEAMS_DIR", WP_CONTENT_DIR . '/teams/');
 
 define("TEAMIMAGES",WP_PLUGIN_URL.'/team/images/');
 
-wp_register_script('teamScript', WP_PLUGIN_URL . '/team/js/script.js',array('jquery'));
+define( 'TEAMPLUGIN_PATH', plugin_dir_path(__FILE__) );
 
-// embed the javascript file that makes the AJAX request
+add_action('wp_enqueue_script','team_scripts');
+
+function team_scripts(){
+	wp_register_script('teamScript', WP_PLUGIN_URL . '/team/js/script.js',array('jquery'));
 	wp_enqueue_script( 'flickr-ajax-request', plugin_dir_url( __FILE__ ) . 'js/script.js', array( 'jquery' ) );
 	 
 	// declare the URL to the file that handles the AJAX request (wp-admin/admin-ajax.php)
 	wp_localize_script( 'flickr-ajax-request', 'Flickr', array( 'ajaxurl' => admin_url( 'admin-ajax.php' ) ) );	
+}
+
+
+
+// embed the javascript file that makes the AJAX request
+	
 	
 
 if (!class_exists("TeamPlugin")) {
@@ -228,6 +237,8 @@ if (!class_exists("TeamPlugin")) {
 
 } //End Class TeamPlugin
 
+include_once ('functions.php');
+
 if( !is_dir( PLAYER_DIR ) )
 {
 	// Attempt to create thumbnail directory if non-existent
@@ -250,131 +261,10 @@ if( !is_writable( PLAYER_DIR ) )
 	}
 	add_action('admin_notices', 'p75_WarningThumbnailFolderNotWritable');
 }
-
 if (class_exists("TeamPlugin")) 
 {
 	$team_plugin = new TeamPlugin();
 }
-
-function meta_box_players()
-{
-	global $wpdb,$meta_box, $post;
-	include ('php/meta_players.php');
-}
-function meta_box_games()
-{
-	global $wpdb,$meta_box, $post;
-	include ('php/meta_games.php');
-}
-function save_page_meta($post_id)
-{
-	global $meta_box,$wpdb;
-	$post_id = wp_is_post_revision($post_id);
-	if(isset($_POST['spielerliste']) && $_POST['spielerliste'] == 'Y')
-	{
-		if(!update_post_meta($post_id, '_spielerliste', $_POST['team'])) {
-			add_post_meta($post_id, '_spielerliste', $_POST['team']);
-		}
-	}
-	if(isset($_POST['ergebnisliste']) && $_POST['ergebnisliste'] == 'Y')
-	{
-		if(!update_post_meta($post_id, '_ergebnisliste', $_POST['team_ergebnis'])) {
-			add_post_meta($post_id, '_ergebnisliste', $_POST['team_ergebnis']);
-		}
-	}
-	if(isset($_POST['spielbericht']) && $_POST['spielbericht'] == 'Y')
-	{
-		if(!update_post_meta($post_id, '_spielbericht', $_POST['spiel'])) {
-			add_post_meta($post_id, '_spielbericht', $_POST['spiel']);
-		}
-	}
-	if(isset($_POST['flickr']) && $_POST['flickr'] != '')
-	{
-		if(!update_post_meta($post_id, '_flickr', $_POST['flickr'])) {
-			add_post_meta($post_id, '_flickr', $_POST['flickr']);
-		}
-	}
-	if(isset($_POST['statistik']) && $_POST['statistik'] == 'Y')
-	{
-		if(!update_post_meta($post_id, '_statistik', $_POST['team_stats'])) {
-			add_post_meta($post_id, '_statistik', $_POST['team_stats']);
-		}
-	}
-}
-function show_meta_data($content)
-{
-	global $post;
-	if ( has_spielerliste($post->ID) )
-		return show_spielerliste($content,$post->ID);
-	elseif(has_ergebnisliste($post->ID))
-		return show_ergebnisliste($content,$post->ID);
-	elseif(has_stats($post->ID))
-		return show_stats($content,$post->ID);
-	elseif(has_spielbericht($post->ID))
-		return show_game_wrap($content,$post->ID);
-	else
-		return $content;
-}
-
-function has_spielerliste($postID)
-{
-	return (bool) get_post_meta($postID, '_spielerliste', true);
-}
-function has_ergebnisliste($postID)
-{
-	return (bool) get_post_meta($postID, '_ergebnisliste', true);
-}
-function has_stats($postID)
-{
-	return (bool) get_post_meta($postID, '_statistik', true);
-}
-function has_spielbericht($postID)
-{
-	return (bool) get_post_meta($postID, '_spielbericht', true);
-}
-
-
-function show_spielerliste($content,$post_id)
-{
-	global $wpdb;
-	include ('php/spielerliste.php');
-	
-	return $content.$spielerliste;
-}
-
-function show_ergebnisliste($content,$post_id)
-{
-	global $wpdb;
-	include ('php/ergebnisliste.php');
-	
-	return $content.$ergebnisliste;
-}
-
-function show_stats($content,$post_id)
-{
-	global $wpdb;
-	include ('php/statistik.php');
-	
-	return $content.$statistik;
-}
-function show_game_wrap($content,$post_id)
-{	
-	global $wpdb;
-	include ('php/gamewrap.php');
-}
-
-function getShortBericht($text, $limit)
-   {
-      $pattern = '/(<img.+?>)/';
-      $text = preg_replace($pattern,"",$text);
-      
-      $array = explode(" ", $text, $limit+1);
-       if (count($array) > $limit)
-      {
-         unset($array[$limit]);
-      }
-      return implode(" ", $array);
-   }
 
 
 //Actions and Filters	
@@ -393,141 +283,5 @@ if (isset($team_plugin)) {
 
 /* Widget */
 
-class Spieltermine extends WP_Widget {
-	function Spieltermine() {
-		//Konstruktor
-		parent::WP_Widget(false, $name='Spieltermine');
-		
-	}
- 
-	function widget($args, $instance) {
-		// Ausgabefunktion
-		global $post,$wpdb;
-		$post_old = $post; // Save the post object.
-		
-		extract( $args );
-		$all = false;
-		$date = date('Y-m-d');
-		if(!$instance["team"] || $instance['team'] == 0)
-		{
-			$all = true;
-		}
-		if(!$instance['limit'])
-		{
-			$limit = 3;
-		}else {
-			$limit = $instance['limit'];
-		}
-		if(!$instance['title'])
-		{
-			$title = "Spieltermine";
-		}else {
-			$title = $instance['title'];
-		}
-		if(!$instance['link'])
-		{
-			
-		}else {
-			$link = $instance['link'];
-		}
-		
-		if($all)
-		{
-			$spiele = $wpdb->get_results("SELECT spiele.id,spiele.datum, spiele.gegner,spiele.ort,spiele.uhrzeit,spiele.liga_id FROM ".$wpdb->prefix."spiele as spiele WHERE spiele.saison = '".$instance['saison']."' AND spiele.datum > '".$date."' ORDER BY spiele.datum, spiele.liga_id LIMIT ".$limit."");	
-		}
-		else
-		{
-			$liga_id = $wpdb->get_var($wpdb->prepare("SELECT id FROM ".$wpdb->prefix."ligen WHERE team_id = %s", $instance['team']));
-			$spiele = $wpdb->get_results("SELECT spiele.id,spiele.datum, spiele.gegner,spiele.ort,spiele.uhrzeit,spiele.liga_id FROM ".$wpdb->prefix."spiele as spiele WHERE spiele.liga_id = '".$liga_id."' AND spiele.datum > '".$date."' ORDER BY spiele.datum LIMIT ".$limit."");
-		}
-		include ('php/spieltermine_widget.php');
-		
-		$post = $post_old; // Restore the post object.
-	}
- 
-	function update($new_instance, $old_instance) {
-		//Speichern des Widgets
-		$instance = $old_instance;
-		$instance['title'] = strip_tags($new_instance['title']); 
-		$instance['limit'] = strip_tags($new_instance['limit']); 
-		$instance['team'] = strip_tags($new_instance['team']);
-		$instance['saison'] = strip_tags($new_instance['saison']);
-		$instance['link'] = strip_tags($new_instance['link']);
-		return $instance;
-	}
- 
-	function form($instance) {
-		//Widgetform im Backend
-		global $wpdb;
-		include ('php/spieltermine_form.php');
-	}
-}
-
-class Ergebnisse extends WP_Widget {
-	function Ergebnisse() {
-		//Konstruktor
-		parent::WP_Widget(false, $name='Ergebnisse');
-		
-	}
- 
-	function widget($args, $instance) {
-		// Ausgabefunktion
-		global $post,$wpdb;
-		$post_old = $post; // Save the post object.
-		extract( $args );
-		$all = false;
-		$date = date('Y-m-d');//,mktime(date("H"),date("i"),date("s"),date("n"),date("j")-7,date("Y")));
-		if(!$instance["team"] || $instance['team'] == 0)
-		{
-			$all = true;
-		}
-		if(!$instance['limit'])
-		{
-			$limit = 3;
-		}else {
-			$limit = $instance['limit'];
-		}
-		if(!$instance['title'])
-		{
-			$title = "Ergebnisse";
-		}else {
-			$title = $instance['title'];
-		}
-		if(!$instance['link'])
-		{
-			
-		}else {
-			$link = $instance['link'];
-		}
-		if($all)
-		{
-			$spiele = $wpdb->get_results("SELECT spiele.id,spiele.datum, spiele.gegner,spiele.ort,spiele.score_heim,spiele.score_gast,spiele.liga_id FROM ".$wpdb->prefix."spiele as spiele WHERE spiele.saison = '".$instance['saison']."' AND spiele.datum <= '".$date."' AND (spiele.score_heim != 0 AND spiele.score_gast != 0) ORDER BY spiele.datum DESC,spiele.liga_id LIMIT ".$limit."");	
-		}
-		else
-		{
-			$liga_id = $wpdb->get_var($wpdb->prepare("SELECT id FROM ".$wpdb->prefix."ligen WHERE team_id = %s", $instance['team']));
-			$spiele = $wpdb->get_results("SELECT spiele.id,spiele.datum, spiele.gegner,spiele.ort,spiele.score_heim,spiele.score_gast,spiele.liga_id FROM ".$wpdb->prefix."spiele as spiele WHERE spiele.liga_id = '".$liga_id."' AND spiele.datum <= '".$date."' AND (spiele.score_heim != 0 AND spiele.score_gast != 0) ORDER BY spiele.datum DESC LIMIT ".$limit."");
-		}
-		include ('php/ergebnisse_widget.php');
-		
-		$post = $post_old; // Restore the post object.
-	}
- 
-	function update($new_instance, $old_instance) {
-		//Speichern des Widgets
-		$instance = $old_instance;
-		$instance['title'] = strip_tags($new_instance['title']); 
-		$instance['limit'] = strip_tags($new_instance['limit']); 
-		$instance['team'] = strip_tags($new_instance['team']);
-		$instance['saison'] = strip_tags($new_instance['saison']);
-		$instance['link'] = strip_tags($new_instance['link']);
-		return $instance;
-	}
- 
-	function form($instance) {
-		//Widgetform im Backend
-		global $wpdb;
-		include ('php/ergebnisse_form.php');
-	}
-}
-
+include_once ('widgets/Spieltermine.php');
+include_once ('widgets/Ergebnisse.php');
