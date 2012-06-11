@@ -249,7 +249,7 @@ if($game->ort == "Münster")
 }
 
 
-$innings = 7;
+$innings = ($game->innings)?$game->innings:7;
 for($j=0;$j<3;$j++)
 {
 	?>

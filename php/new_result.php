@@ -1,6 +1,12 @@
 <h2>Neues Ergebnis</h2>
 <? 
-	$innings = 7;
+
+if(isset($_GET["game_id"])) {
+
+$innings = $wpdb->get_var($wpdb->prepare("SELECT liga.innings FROM ".$wpdb->prefix."ligen as liga LEFT JOIN ".$wpdb->prefix."spiele as spiele ON spiele.liga_id = liga.id WHERE spiele.id = %s", $_GET['game_id']));
+	}else {
+		$innings = 9;
+	}
 if(isset($_POST['game_id']) && $_POST['game_id'] != "")
 {
 
@@ -46,11 +52,35 @@ if(isset($_GET['game_id']))
 $heim_box_tp = unserialize($game->box_heim);
 $gast_box_tp = unserialize($game->box_gast);
 
-include_once('templates/result_form.php');
+$scoresHome = $heim_box_tp[0];
+$runsHitsErrorsHome = $heim_box_tp[1];
+
+$scoresAway = $gast_box_tp[0];
+$runsHitsErrorsAway = $gast_box_tp[1];
+
+
+if(count($scoresHome) < $innings || count($scoresAway) < $innings) {
+	$oldIninngs = count($scoresHome)+1;
+	for($i=$oldIninngs;$i<=$innings;$i++) {
+		$scoresHome[$i] = "-";
+		$scoresAway[$i] = "-";
+	}
+	$diff =$innings-$oldIninngs+1;
+	$oldIninngsInklBox = $oldIninngs+3;
+
+	for($j=$oldIninngs;$j<$oldIninngsInklBox;$j++) {
+		$runsHitsErrorsHomeNew[$j+$diff] = $runsHitsErrorsHome[$j];
+		$runsHitsErrorsAwayNew[$j+$diff] = $runsHitsErrorsAway[$j];
+	}
+	$runsHitsErrorsAway = $runsHitsErrorsAwayNew;
+	$runsHitsErrorsHome = $runsHitsErrorsHomeNew;
+}
+
+include_once(TEAMPLUGIN_PATH.'/templates/result_form.php');
 
 }else {
 	//Spielauswahl
-	$games = $wpdb->get_results("SELECT spiele.*,liga.name as liganame FROM ".$wpdb->prefix."spiele as spiele LEFT JOIN ".$wpdb->prefix."ligen as liga ON liga.id = spiele.liga_id ORDER BY spiele.datum");
+	$games = $wpdb->get_results("SELECT spiele.*,liga.name as liganame FROM ".$wpdb->prefix."spiele as spiele LEFT JOIN ".$wpdb->prefix."ligen as liga ON liga.id = spiele.liga_id ORDER BY spiele.datum DESC");
 	echo '<form method="get" action="">';
 	echo '<input type="hidden" name="page" value="new-result" />';
 	echo '<select name="game_id">';
